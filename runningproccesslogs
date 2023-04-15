@@ -1,0 +1,32 @@
+import psutil
+import time
+import logging
+
+# Set up logging
+logging.basicConfig(filename="/Users/process_changes.log", level=logging.WARNING)
+
+# Get a list of running processes
+initial_processes = set((p.info["pid"], p.info["name"]) for p in psutil.process_iter(['pid', 'name']))
+
+while True:
+    # Get the current list of running processes
+    current_processes = set((p.info["pid"], p.info["name"]) for p in psutil.process_iter(['pid', 'name']))
+
+    # Check for new processes
+    new_processes = current_processes - initial_processes
+    if new_processes:
+        for process in new_processes:
+            logging.warning("New process detected: PID={}, Name={}".format(process[0], process[1]))
+
+    # Check for terminated processes
+    terminated_processes = initial_processes - current_processes
+    if terminated_processes:
+        for process in terminated_processes:
+            logging.warning("Process terminated: PID={}, Name={}".format(process[0], process[1]))
+
+    # Update the list of initial processes
+    initial_processes = current_processes
+
+    # Sleep for a specified interval
+    time.sleep(5)
+
